@@ -1,0 +1,13 @@
+languages:
+  - en
+
+snr_levels:
+  - 0
+  - 5
+  - 10
+  - 15
+  - 20
+
+sample_rate: 16000
+
+seed: 42
