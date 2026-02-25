@@ -1,4 +1,0 @@
-{"utt_id": "fr_001", "lang": "fr", "wav_path": "data/raw/fr/001.wav", "ref_text": "Bonjour Monde", "ref_phon": "", "sr": 16000, "duration_s": 3.753, "snr_db": null, "audio_md5": "94259269e412c2be3dec942fdc8a00df"}
-{"utt_id": "fr_002", "lang": "fr", "wav_path": "data/raw/fr/002.wav", "ref_text": "Je m’appelle Maria", "ref_phon": "", "sr": 16000, "duration_s": 3.54, "snr_db": null, "audio_md5": "8a59e3cbcd0a4f903c0ed60e740e5c32"}
-{"utt_id": "fr_003", "lang": "fr", "wav_path": "data/raw/fr/003.wav", "ref_text": "Où est le café le plus proche", "ref_phon": "", "sr": 16000, "duration_s": 3.796, "snr_db": null, "audio_md5": "547d926dc42d9e65e033ee27b6735e0f"}
-{"utt_id": "fr_004", "lang": "fr", "wav_path": "data/raw/fr/004.wav", "ref_text": "C’est vraiment très beau", "ref_phon": "", "sr": 16000, "duration_s": 3.689, "snr_db": null, "audio_md5": "b4a34c5e5a0df8608e40a138a97d0b63"}

@@ -1,4 +1,0 @@
-{"utt_id": "en_001", "lang": "en", "wav_path": "data/raw/en/001.wav", "ref_text": "hello wold", "ref_phon": "", "sr": 16000, "duration_s": 3.007, "snr_db": null, "audio_md5": "fc9846f6d2d1cebcb8185cc2e63c480a"}
-{"utt_id": "en_002", "lang": "en", "wav_path": "data/raw/en/002.wav", "ref_text": "My name is Maria", "ref_phon": "", "sr": 16000, "duration_s": 4.415, "snr_db": null, "audio_md5": "7fe08f9dd9ec8cd50bfd4eeeea7aa615"}
-{"utt_id": "en_003", "lang": "en", "wav_path": "data/raw/en/003.wav", "ref_text": "Where is the nearest coffee shop", "ref_phon": "", "sr": 16000, "duration_s": 4.287, "snr_db": null, "audio_md5": "29ceeada23e920df8f003f6100f1f1bd"}
-{"utt_id": "en_004", "lang": "en", "wav_path": "data/raw/en/004.wav", "ref_text": "It is very beautiful", "ref_phon": "", "sr": 16000, "duration_s": 3.476, "snr_db": null, "audio_md5": "552777ad943acc4e2201cb72e5eaf3f9"}
