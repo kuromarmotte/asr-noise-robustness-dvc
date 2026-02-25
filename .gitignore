@@ -1,4 +1,13 @@
 .DS_Store
 
-data/raw/
+# Generated data only
 data/interim/
+data/predictions/
+data/metrics/
+data/figures/
+
+# Python
+__pycache__/
+*.pyc
+*.m4a
+data/manifests/*/noisy_*.jsonl

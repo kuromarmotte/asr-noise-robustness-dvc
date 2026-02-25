@@ -1,5 +1,10 @@
 languages:
   - en
+  - ja
+  - fr 
+  - ru
+
+
 
 snr_levels:
   - 0

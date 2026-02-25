@@ -1,0 +1,4 @@
+{"utt_id": "ja_001", "lang": "ja", "wav_path": "data/raw/ja/001.wav", "ref_text": "こんにちは世界", "ref_phon": "", "sr": 16000, "duration_s": 4.372, "snr_db": null, "audio_md5": "eaa53d3aa09af6afccc175a28c16a203"}
+{"utt_id": "ja_002", "lang": "ja", "wav_path": "data/raw/ja/002.wav", "ref_text": "私はマリアです", "ref_phon": "", "sr": 16000, "duration_s": 3.753, "snr_db": null, "audio_md5": "f438c34089355e8a65cdd2658296a480"}
+{"utt_id": "ja_003", "lang": "ja", "wav_path": "data/raw/ja/003.wav", "ref_text": "一番近いカフェはどこですか", "ref_phon": "", "sr": 16000, "duration_s": 4.905, "snr_db": null, "audio_md5": "ea9ea4392d7a136d6daa20ba5e993512"}
+{"utt_id": "ja_004", "lang": "ja", "wav_path": "data/raw/ja/004.wav", "ref_text": "とても美しいです", "ref_phon": "", "sr": 16000, "duration_s": 4.564, "snr_db": null, "audio_md5": "a3567aeabfea101b49da56b78600af00"}

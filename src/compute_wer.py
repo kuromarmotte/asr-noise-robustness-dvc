@@ -1,17 +1,12 @@
 import json
 from pathlib import Path
+import yaml
 
 
 def edit_distance(ref, hyp):
-    m = len(ref)
-    n = len(hyp)
-
-    dp = [[0] * (n + 1) for _ in range(m + 1)]
-
-    for i in range(m + 1):
-        dp[i][0] = i
-    for j in range(n + 1):
-        dp[0][j] = j
+    m, n = len(ref), len(hyp)
+    dp = [[i + j if i * j == 0 else 0 for j in range(n + 1)]
+          for i in range(m + 1)]
 
     for i in range(1, m + 1):
         for j in range(1, n + 1):
@@ -19,50 +14,95 @@ def edit_distance(ref, hyp):
             dp[i][j] = min(
                 dp[i - 1][j] + 1,
                 dp[i][j - 1] + 1,
-                dp[i - 1][j - 1] + cost
+                dp[i - 1][j - 1] + cost,
             )
 
     return dp[m][n]
 
 
+def load_params():
+    return yaml.safe_load(Path("params.yaml").read_text())
+
+
+def compute_wer_for_file(pred_path: Path):
+    total_words = 0
+    total_errors = 0
+
+    with pred_path.open() as f:
+        for line in f:
+            item = json.loads(line)
+
+            ref = item["ref_text"].lower().split()
+            hyp = item["pred_text"].lower().split()
+
+            if not ref:
+                continue
+
+            total_words += len(ref)
+            total_errors += edit_distance(ref, hyp)
+
+    return (total_errors / total_words) if total_words else 0.0
+
+
 def main():
+
+    params = load_params()
+    languages = params.get("languages", [])
+    snr_levels = params.get("snr_levels", [])
 
     pred_dir = Path("data/predictions")
     metrics_dir = Path("data/metrics")
-    metrics_dir.mkdir(exist_ok=True)
+    metrics_dir.mkdir(parents=True, exist_ok=True)
 
-    prediction_files = list(pred_dir.glob("*_pred.jsonl"))
+    summary = {}
 
-    for pred_path in prediction_files:
+    snr_keys = ["clean"] + [str(s) for s in snr_levels]
 
-        total_words = 0
-        total_errors = 0
+    for lang in languages:
+        summary[lang] = {}
 
-        with pred_path.open() as f:
-            for line in f:
-                item = json.loads(line)
+        for snr in snr_keys:
 
-                ref_words = item["ref_text"].lower().split()
-                hyp_words = item["pred_phon"].lower().split()
+            filename = (
+                f"{lang}_clean_pred.jsonl"
+                if snr == "clean"
+                else f"{lang}_noisy_{snr}_pred.jsonl"
+            )
 
-                errors = edit_distance(ref_words, hyp_words)
+            pred_path = pred_dir / filename
 
-                total_words += len(ref_words)
-                total_errors += errors
+            if not pred_path.exists():
+                print(f"[WARNING] Missing {filename}, skipping.")
+                continue
 
-        wer = total_errors / total_words if total_words > 0 else 0.0
+            wer = compute_wer_for_file(pred_path)
+            summary[lang][snr] = wer
 
-        output_name = pred_path.name.replace("_pred.jsonl", "_metrics.json")
-        output_path = metrics_dir / output_name
+            print(f"{lang} | SNR {snr} → WER: {wer:.4f}")
 
-        with output_path.open("w") as f:
-            json.dump({"WER": wer}, f, indent=2)
+    # ---- Mean across languages ----
+    summary["mean"] = {}
 
-        print(f"{pred_path.name} → WER: {wer:.4f}")
+    for snr in snr_keys:
+        values = [
+            summary[lang][snr]
+            for lang in languages
+            if snr in summary.get(lang, {})
+        ]
+        if values:
+            summary["mean"][snr] = sum(values) / len(values)
+
+    # ---- Atomic write ----
+    summary_path = metrics_dir / "summary.json"
+    tmp_path = summary_path.with_suffix(".tmp")
+
+    with tmp_path.open("w") as f:
+        json.dump(summary, f, indent=2)
+
+    tmp_path.rename(summary_path)
 
     print("WER computation complete.")
 
 
 if __name__ == "__main__":
     main()
-    

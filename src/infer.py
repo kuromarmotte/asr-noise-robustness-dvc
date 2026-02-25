@@ -1,70 +1,84 @@
 import json
 from pathlib import Path
-
+import yaml
 import torch
 import soundfile as sf
 from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 
 
+MODEL_NAME = "facebook/wav2vec2-base-960h"
+
+
+def load_params():
+    return yaml.safe_load(Path("params.yaml").read_text())
+
+
 def main():
 
+    params = load_params()
+    languages = params.get("languages", [])
+    sample_rate = params.get("sample_rate")
+
+    if not languages:
+        raise ValueError("No languages defined in params.yaml")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     print("Loading model...")
+    processor = Wav2Vec2Processor.from_pretrained(MODEL_NAME)
+    model = Wav2Vec2ForCTC.from_pretrained(MODEL_NAME)
+    model.to(device).eval()
 
-    processor = Wav2Vec2Processor.from_pretrained(
-        "facebook/wav2vec2-base-960h"
-    )
-    model = Wav2Vec2ForCTC.from_pretrained(
-        "facebook/wav2vec2-base-960h"
-    )
-
-    model.eval()
-
-    manifest_dir = Path("data/manifests/en")
     prediction_dir = Path("data/predictions")
-    prediction_dir.mkdir(exist_ok=True)
+    prediction_dir.mkdir(parents=True, exist_ok=True)
 
-    manifests = [
-        "clean.jsonl",
-        "noisy_20.jsonl",
-        "noisy_15.jsonl",
-        "noisy_10.jsonl",
-        "noisy_5.jsonl",
-        "noisy_0.jsonl",
-    ]
+    for lang in languages:
 
-    for manifest_name in manifests:
+        manifest_dir = Path("data/manifests") / lang
+        if not manifest_dir.exists():
+            print(f"[WARNING] No manifest directory for {lang}, skipping.")
+            continue
 
-        print(f"Processing {manifest_name}...")
+        for manifest_path in manifest_dir.glob("*.jsonl"):
 
-        manifest_path = manifest_dir / manifest_name
-        output_name = manifest_name.replace(".jsonl", "_pred.jsonl")
-        output_path = prediction_dir / output_name
+            print(f"Processing {lang}/{manifest_path.name}...")
 
-        with manifest_path.open() as f, output_path.open("w") as out_f:
+            output_path = prediction_dir / f"{lang}_{manifest_path.stem}_pred.jsonl"
+            tmp_output = output_path.with_suffix(".tmp")
 
-            for line in f:
-                item = json.loads(line)
+            with manifest_path.open() as f_in, tmp_output.open("w") as f_out:
 
-                wav_path = "data/raw/en/001.wav"
-                speech, sr = sf.read(wav_path)
+                for line in f_in:
+                    item = json.loads(line)
+                    wav_path = Path(item["wav_path"])
 
-                inputs = processor(
-                    speech,
-                    sampling_rate=16000,
-                    return_tensors="pt",
-                    padding=True
-                )
+                    if not wav_path.exists():
+                        continue
 
-                with torch.no_grad():
-                    logits = model(**inputs).logits
+                    speech, sr = sf.read(wav_path)
 
-                predicted_ids = torch.argmax(logits, dim=-1)
-                transcription = processor.batch_decode(predicted_ids)[0]
+                    if speech.ndim != 1 or sr != sample_rate:
+                        continue
 
-                item["pred_phon"] = transcription
-                out_f.write(json.dumps(item) + "\n")
+                    inputs = processor(
+                        speech,
+                        sampling_rate=sample_rate,
+                        return_tensors="pt",
+                        padding=True,
+                    )
 
-        print(f"Saved → {output_name}")
+                    inputs = {k: v.to(device) for k, v in inputs.items()}
+
+                    with torch.no_grad():
+                        logits = model(**inputs).logits
+
+                    pred_ids = torch.argmax(logits, dim=-1)
+                    item["pred_text"] = processor.batch_decode(pred_ids)[0]
+
+                    f_out.write(json.dumps(item) + "\n")
+
+            tmp_output.rename(output_path)
+            print(f"Saved → {output_path.name}")
 
     print("Inference complete.")
 

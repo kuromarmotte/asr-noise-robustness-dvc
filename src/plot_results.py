@@ -1,37 +1,78 @@
 import json
 from pathlib import Path
 import matplotlib.pyplot as plt
+import yaml
+
+
+def load_params():
+    return yaml.safe_load(Path("params.yaml").read_text())
+
+
+def extract_curve(values: dict, snr_levels):
+    snrs = []
+    wers = []
+
+    for snr in ["clean"] + [str(s) for s in snr_levels]:
+
+        if snr not in values:
+            continue
+
+        x = -1 if snr == "clean" else int(snr)
+        snrs.append(x)
+        wers.append(values[snr])
+
+    return snrs, wers
 
 
 def main():
 
-    metrics_dir = Path("data/metrics")
+    params = load_params()
+    languages = params.get("languages", [])
+    snr_levels = params.get("snr_levels", [])
 
-    snr_levels = []
-    wer_values = []
+    summary_path = Path("data/metrics/summary.json")
 
-    for file in metrics_dir.glob("noisy_*_metrics.json"):
+    if not summary_path.exists():
+        print("[WARNING] summary.json not found. Run compute_wer.py first.")
+        return
 
-        snr = file.name.split("_")[1]  # ex: noisy_20_metrics.json
-        snr = int(snr)
+    summary = json.loads(summary_path.read_text())
 
-        with file.open() as f:
-            data = json.load(f)
-
-        snr_levels.append(snr)
-        wer_values.append(data["WER"])
-
-    # Trier par SNR croissant
-    snr_levels, wer_values = zip(*sorted(zip(snr_levels, wer_values)))
+    if not summary:
+        print("No data available in summary.")
+        return
 
     plt.figure()
-    plt.plot(snr_levels, wer_values)
-    plt.xlabel("SNR (dB)")
-    plt.ylabel("WER")
-    plt.title("WER vs SNR")
-    plt.savefig("data/figures/wer_vs_snr.png")
 
-    print("Plot saved → data/figures/wer_vs_snr.png")
+    # ---- Language curves ----
+    for lang in languages:
+
+        if lang not in summary:
+            print(f"[WARNING] No results for {lang}, skipping.")
+            continue
+
+        snrs, wers = extract_curve(summary[lang], snr_levels)
+
+        if snrs:
+            plt.plot(snrs, wers, marker="o", label=lang)
+
+    # ---- Mean curve ----
+    if "mean" in summary:
+        snrs, wers = extract_curve(summary["mean"], snr_levels)
+        if snrs:
+            plt.plot(snrs, wers, linestyle="--", linewidth=2, label="mean")
+
+    plt.xlabel("SNR (dB)  (clean = -1)")
+    plt.ylabel("WER")
+    plt.title("WER vs SNR (Multi-language)")
+    plt.legend()
+    plt.grid(True)
+
+    output_path = Path("data/figures/wer_vs_snr_multilang.png")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(output_path)
+
+    print(f"Plot saved → {output_path}")
 
 
 if __name__ == "__main__":
