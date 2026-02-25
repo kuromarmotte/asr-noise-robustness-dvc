@@ -1,35 +1,72 @@
 import json
 from pathlib import Path
-import yaml
+
+import torch
+import soundfile as sf
+from transformers import Wav2Vec2Processor, Wav2Vec2ForCTC
 
 
 def main():
-    params = yaml.safe_load(Path("params.yaml").read_text())
-    languages = params["languages"]
 
-    for lang in languages:
-        manifest_path = Path(f"data/manifests/{lang}/clean.jsonl")
+    print("Loading model...")
 
-        with manifest_path.open("r", encoding="utf-8") as f:
-            items = [json.loads(line) for line in f]
+    processor = Wav2Vec2Processor.from_pretrained(
+        "facebook/wav2vec2-base-960h"
+    )
+    model = Wav2Vec2ForCTC.from_pretrained(
+        "facebook/wav2vec2-base-960h"
+    )
 
-        predictions = []
+    model.eval()
 
-        for item in items:
-            pred_item = item.copy()
-            pred_item["pred_phon"] = "DUMMY_PREDICTION"
-            predictions.append(pred_item)
+    manifest_dir = Path("data/manifests/en")
+    prediction_dir = Path("data/predictions")
+    prediction_dir.mkdir(exist_ok=True)
 
-        output_path = Path(f"data/predictions/{lang}_clean_pred.jsonl")
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+    manifests = [
+        "clean.jsonl",
+        "noisy_20.jsonl",
+        "noisy_15.jsonl",
+        "noisy_10.jsonl",
+        "noisy_5.jsonl",
+        "noisy_0.jsonl",
+    ]
 
-        tmp_path = output_path.with_suffix(".tmp")
+    for manifest_name in manifests:
 
-        with tmp_path.open("w", encoding="utf-8") as f:
-            for p in predictions:
-                f.write(json.dumps(p, ensure_ascii=False) + "\n")
+        print(f"Processing {manifest_name}...")
 
-        tmp_path.rename(output_path)
+        manifest_path = manifest_dir / manifest_name
+        output_name = manifest_name.replace(".jsonl", "_pred.jsonl")
+        output_path = prediction_dir / output_name
+
+        with manifest_path.open() as f, output_path.open("w") as out_f:
+
+            for line in f:
+                item = json.loads(line)
+
+                wav_path = "data/raw/en/001.wav"
+                speech, sr = sf.read(wav_path)
+
+                inputs = processor(
+                    speech,
+                    sampling_rate=16000,
+                    return_tensors="pt",
+                    padding=True
+                )
+
+                with torch.no_grad():
+                    logits = model(**inputs).logits
+
+                predicted_ids = torch.argmax(logits, dim=-1)
+                transcription = processor.batch_decode(predicted_ids)[0]
+
+                item["pred_phon"] = transcription
+                out_f.write(json.dumps(item) + "\n")
+
+        print(f"Saved → {output_name}")
+
+    print("Inference complete.")
 
 
 if __name__ == "__main__":

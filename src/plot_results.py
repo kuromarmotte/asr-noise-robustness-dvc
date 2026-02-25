@@ -4,28 +4,34 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    metrics_path = Path("data/metrics/en_clean_metrics.json")
 
-    with metrics_path.open("r", encoding="utf-8") as f:
-        metrics = json.load(f)
+    metrics_dir = Path("data/metrics")
 
-    per_value = metrics["PER"]
+    snr_levels = []
+    wer_values = []
 
-    # Pour l’instant on simule un seul point (SNR = None)
-    snr_values = [0]
-    per_values = [per_value]
+    for file in metrics_dir.glob("noisy_*_metrics.json"):
+
+        snr = file.name.split("_")[1]  # ex: noisy_20_metrics.json
+        snr = int(snr)
+
+        with file.open() as f:
+            data = json.load(f)
+
+        snr_levels.append(snr)
+        wer_values.append(data["WER"])
+
+    # Trier par SNR croissant
+    snr_levels, wer_values = zip(*sorted(zip(snr_levels, wer_values)))
 
     plt.figure()
-    plt.plot(snr_values, per_values)
+    plt.plot(snr_levels, wer_values)
     plt.xlabel("SNR (dB)")
-    plt.ylabel("PER")
-    plt.title("PER vs Noise (English)")
-    plt.grid(True)
+    plt.ylabel("WER")
+    plt.title("WER vs SNR")
+    plt.savefig("data/figures/wer_vs_snr.png")
 
-    output_path = Path("data/figures/per_plot.png")
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(output_path)
-    plt.close()
+    print("Plot saved → data/figures/wer_vs_snr.png")
 
 
 if __name__ == "__main__":

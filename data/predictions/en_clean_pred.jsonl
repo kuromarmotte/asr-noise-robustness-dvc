@@ -1,1 +1,1 @@
-{"utt_id": "en_001", "lang": "en", "wav_path": "data/raw/en/001.wav", "ref_text": "hello world", "ref_phon": "həˈloʊ wɜːrld", "sr": 16000, "duration_s": 1.23, "snr_db": null, "audio_md5": "b37cd4d07678c0016499daf69515b6cb", "pred_phon": "DUMMY_PREDICTION"}
+{"utt_id": "en_001", "lang": "en", "wav_path": "data/raw/en/001.wav", "ref_text": "hello world", "ref_phon": "həˈloʊ wɜːrld", "sr": 16000, "duration_s": 1.23, "snr_db": null, "audio_md5": "b37cd4d07678c0016499daf69515b6cb", "pred_phon": "HELLO WORLD"}

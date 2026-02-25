@@ -1,0 +1,1 @@
+{"utt_id": "en_001", "lang": "en", "wav_path": "data/interim/en/20dB_001.wav", "ref_text": "hello world", "ref_phon": "h\u0259\u02c8lo\u028a w\u025c\u02d0rld", "sr": 16000, "duration_s": 1.23, "snr_db": 20, "audio_md5": "b37cd4d07678c0016499daf69515b6cb", "pred_phon": "HELLO WORLD"}
