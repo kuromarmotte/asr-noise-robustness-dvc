@@ -1,0 +1,117 @@
+schema: '2.0'
+stages:
+  make_manifest:
+    cmd: python3 src/make_manifest.py
+    deps:
+    - path: data/raw
+      hash: md5
+      md5: 7ccf6df9224402cc9cb75c0b60c135ac.dir
+      size: 1551745
+      nfiles: 28
+    - path: params.yaml
+      hash: md5
+      md5: e70beee4d725a18dc2113808687add33
+      size: 117
+    - path: src/make_manifest.py
+      hash: md5
+      md5: c6e5b0bdd8e440055bbc12659d90ab39
+      size: 2800
+    outs:
+    - path: data/manifests
+      hash: md5
+      md5: 7d118f31e1796152af2df69479afa7cc.dir
+      size: 2685
+      nfiles: 3
+  add_noise:
+    cmd: python3 src/add_noise.py
+    deps:
+    - path: data/manifests
+      hash: md5
+      md5: cb915394fd5c63ea5f1ae3803b0468ba.dir
+      size: 16482
+      nfiles: 18
+    - path: params.yaml
+      hash: md5
+      md5: e70beee4d725a18dc2113808687add33
+      size: 117
+    - path: src/add_noise.py
+      hash: md5
+      md5: 9ea6a99ecf188e9d44acb9b55c10356f
+      size: 2741
+    outs:
+    - path: data/interim
+      hash: md5
+      md5: d9734e09585a5d5123f5906c81a9272c.dir
+      size: 7611810
+      nfiles: 60
+  infer:
+    cmd: python3 src/infer.py
+    deps:
+    - path: data/interim
+      hash: md5
+      md5: d9734e09585a5d5123f5906c81a9272c.dir
+      size: 7611810
+      nfiles: 60
+    - path: data/manifests
+      hash: md5
+      md5: cb915394fd5c63ea5f1ae3803b0468ba.dir
+      size: 16482
+      nfiles: 18
+    - path: params.yaml
+      hash: md5
+      md5: e70beee4d725a18dc2113808687add33
+      size: 117
+    - path: src/infer.py
+      hash: md5
+      md5: 7ecb9edad6090051ecc80f854fb83e6e
+      size: 2529
+    outs:
+    - path: data/predictions
+      hash: md5
+      md5: 0f77332c1c77b592e527270102dbfdb1.dir
+      size: 19853
+      nfiles: 18
+  compute_wer:
+    cmd: python3 src/compute_wer.py
+    deps:
+    - path: data/predictions
+      hash: md5
+      md5: 0f77332c1c77b592e527270102dbfdb1.dir
+      size: 19853
+      nfiles: 18
+    - path: params.yaml
+      hash: md5
+      md5: e70beee4d725a18dc2113808687add33
+      size: 117
+    - path: src/compute_wer.py
+      hash: md5
+      md5: 870dddbb995abd3da52580971575e839
+      size: 2605
+    outs:
+    - path: data/metrics
+      hash: md5
+      md5: e1ee4403a5473c9d0843e00e1e87df1c.dir
+      size: 495
+      nfiles: 1
+  plot_results:
+    cmd: python3 src/plot_results.py
+    deps:
+    - path: data/metrics
+      hash: md5
+      md5: e1ee4403a5473c9d0843e00e1e87df1c.dir
+      size: 495
+      nfiles: 1
+    - path: params.yaml
+      hash: md5
+      md5: e70beee4d725a18dc2113808687add33
+      size: 117
+    - path: src/plot_results.py
+      hash: md5
+      md5: cdfab616f88825b06efa0f2baa84dc1c
+      size: 1847
+    outs:
+    - path: data/figures
+      hash: md5
+      md5: 0d66a9a4f934eccaa0d87b7298953035.dir
+      size: 28490
+      nfiles: 1

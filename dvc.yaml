@@ -1,0 +1,47 @@
+stages:
+  make_manifest:
+    cmd: python3 src/make_manifest.py
+    deps:
+      - src/make_manifest.py
+      - params.yaml
+      - data/raw
+    outs:
+      - data/manifests
+
+  add_noise:
+    cmd: python3 src/add_noise.py
+    deps:
+      - src/add_noise.py
+      - params.yaml
+      - data/manifests
+    outs:
+      - data/interim
+
+  infer:
+    cmd: python3 src/infer.py
+    deps:
+      - src/infer.py
+      - params.yaml
+      - data/manifests
+      - data/interim
+    outs:
+      - data/predictions
+
+  compute_wer:
+    cmd: python3 src/compute_wer.py
+    deps:
+      - src/compute_wer.py
+      - params.yaml
+      - data/predictions
+    outs:
+      - data/metrics
+
+  plot_results:
+    cmd: python3 src/plot_results.py
+    deps:
+      - src/plot_results.py
+      - params.yaml
+      - data/metrics
+    outs:
+      - data/figures
+
